@@ -55,45 +55,43 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/uploads/**").permitAll()
+            .requestMatchers("/api/admin/login").permitAll()
+            .requestMatchers("/api/admin/signup").permitAll()
+            .requestMatchers("/api/products/**").permitAll()
+            .requestMatchers("/api/contact").permitAll()
+            .requestMatchers("/api/subscribe").permitAll()
+            .requestMatchers("/api/admin/**").authenticated()
+            .anyRequest().permitAll()
+        )
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/api/admin/login").permitAll()
-                        .requestMatchers("/api/admin/signup").permitAll()
-                        .requestMatchers("/api/products").permitAll()
-                        .requestMatchers("/api/contact").permitAll()
-                        .requestMatchers("/api/subscribe").permitAll()
-                        .requestMatchers("/api/admin/**").authenticated()
-                        .requestMatchers("/api/products/**").authenticated()
-                        .anyRequest().permitAll()
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+}
 
-        return http.build();
-    }
+   @Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-      configuration.setAllowedOriginPatterns(List.of(
-    "https://fineartsproject.netlify.app",  // replace after Netlify deploy
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "*"
-));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+    configuration.setAllowedOriginPatterns(List.of(
+        "https://fineartsproject.netlify.app",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
+    ));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 }
