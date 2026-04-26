@@ -82,7 +82,7 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
       configuration.setAllowedOriginPatterns(List.of(
-    "https://your-site.netlify.app",  // replace after Netlify deploy
+    "https://fineartsproject.netlify.app",  // replace after Netlify deploy
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "*"
