@@ -7,16 +7,11 @@ import com.college.LNCT.entity.Product;
 import com.college.LNCT.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,8 +21,8 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    @Autowired
+    private CloudinaryService cloudinaryService; // ✅ Replaced file.upload-dir
 
     // Get all products
     public List<ProductDto> getAllProducts() {
@@ -57,9 +52,10 @@ public class ProductService {
                     .build();
 
             if (image != null && !image.isEmpty()) {
-                String imagePath = saveImage(image);
-                product.setImagePath(imagePath);
-                product.setImageUrl("/uploads/products/" + Paths.get(imagePath).getFileName());
+                // ✅ Upload to Cloudinary, get public HTTPS URL
+                String imageUrl = cloudinaryService.uploadImage(image);
+                product.setImageUrl(imageUrl);
+                product.setImagePath(imageUrl); // ✅ store Cloudinary URL in both fields
             }
 
             Product savedProduct = productRepository.save(product);
@@ -83,13 +79,15 @@ public class ProductService {
 
         try {
             if (image != null && !image.isEmpty()) {
-                // Delete old image if exists
+                // ✅ Delete old image from Cloudinary if exists
                 if (product.getImagePath() != null) {
-                    deleteImage(product.getImagePath());
+                    cloudinaryService.deleteImage(product.getImagePath());
                 }
-                String imagePath = saveImage(image);
-                product.setImagePath(imagePath);
-                product.setImageUrl("/uploads/products/" + Paths.get(imagePath).getFileName());
+
+                // ✅ Upload new image to Cloudinary
+                String imageUrl = cloudinaryService.uploadImage(image);
+                product.setImageUrl(imageUrl);
+                product.setImagePath(imageUrl);
             }
 
             Product updatedProduct = productRepository.save(product);
@@ -110,15 +108,15 @@ public class ProductService {
         product.setIsActive(false);
         productRepository.save(product);
 
-        // Delete image file
+        // ✅ Delete image from Cloudinary
         if (product.getImagePath() != null) {
-            deleteImage(product.getImagePath());
+            cloudinaryService.deleteImage(product.getImagePath());
         }
 
         log.info("Product deleted: {}", id);
     }
 
-    // Helper methods
+    // Helper method
     private ProductDto convertToDto(Product product) {
         return ProductDto.builder()
                 .id(product.getId())
@@ -127,31 +125,5 @@ public class ProductService {
                 .price(product.getPrice())
                 .imageUrl(product.getImageUrl())
                 .build();
-    }
-
-    private String saveImage(MultipartFile file) throws IOException {
-    Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-    if (!Files.exists(uploadPath)) {
-        Files.createDirectories(uploadPath);
-    }
-
-    String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-    Path filePath = uploadPath.resolve(fileName);
-
-    Files.copy(file.getInputStream(), filePath);
-    log.info("Image saved: {}", fileName);
-    return fileName;  // ← return ONLY filename, not full path
-}
-
-    private void deleteImage(String imagePath) {
-        try {
-            Path path = Paths.get(imagePath);
-            if (Files.exists(path)) {
-                Files.delete(path);
-                log.info("Image deleted: {}", imagePath);
-            }
-        } catch (IOException e) {
-            log.error("Error deleting image: {}", imagePath, e);
-        }
     }
 }
