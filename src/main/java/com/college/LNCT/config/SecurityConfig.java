@@ -19,11 +19,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+// import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+// import java.nio.file.Path;
+// import java.nio.file.Paths;
 import java.util.List;
 
 @Configuration
@@ -34,17 +34,17 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    // @Value("${file.upload-dir}")
+    // private String uploadDir;
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-        String resourceLocation = "file:" + uploadPath.toString() + "/";
+    // @Override
+    // public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    //     Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
+    //     String resourceLocation = "file:" + uploadPath.toString() + "/";
 
-        registry.addResourceHandler("/uploads/products/**")
-                .addResourceLocations(resourceLocation);
-    }
+    //     registry.addResourceHandler("/uploads/products/**")
+    //             .addResourceLocations(resourceLocation);
+    // }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
