@@ -26,10 +26,8 @@ public class ArtworkController {
         @RequestParam("title") String title
     ) throws IOException {
 
-        // Upload to Cloudinary, get public HTTPS URL
         String imageUrl = cloudinaryService.uploadImage(image);
 
-        // Save URL to Neon DB
         Artwork artwork = new Artwork();
         artwork.setTitle(title);
         artwork.setImageUrl(imageUrl);

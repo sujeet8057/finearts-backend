@@ -23,7 +23,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -37,14 +36,14 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-   @Override
-public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-    String resourceLocation = "file:" + uploadPath.toString() + "/";
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
+        String resourceLocation = "file:" + uploadPath.toString() + "/";
 
-    registry.addResourceHandler("/uploads/products/**")
-            .addResourceLocations(resourceLocation);
-}
+        registry.addResourceHandler("/uploads/products/**")
+                .addResourceLocations(resourceLocation);
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -55,43 +54,46 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-@Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/uploads/**").permitAll()
-            .requestMatchers("/api/admin/login").permitAll()
-            .requestMatchers("/api/admin/signup").permitAll()
-            .requestMatchers("/api/products/**").permitAll()
-            .requestMatchers("/api/contact").permitAll()
-            .requestMatchers("/api/subscribe").permitAll()
-            .requestMatchers("/api/admin/**").authenticated()
-            .anyRequest().permitAll()
-        )
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-    return http.build();
-}
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers("/api/admin/login").permitAll()
+                .requestMatchers("/api/admin/signup").permitAll()
+                .requestMatchers("/api/products/**").permitAll()
+                .requestMatchers("/api/contact").permitAll()
+                .requestMatchers("/api/subscribe").permitAll()
+                .requestMatchers("/api/artworks/upload").permitAll() // ✅ added
+                .requestMatchers("/api/admin/**").authenticated()
+                .anyRequest().permitAll()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-   @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
+        return http.build();
+    }
 
-    configuration.setAllowedOriginPatterns(List.of(
-        "https://fineartsproject.netlify.app",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500"
-    ));
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
-    configuration.setAllowCredentials(true);
+        configuration.setAllowedOriginPatterns(List.of(
+            "https://fineartsproject.netlify.app",
+            "http://localhost:5500",
+            "http://127.0.0.1:5500"
+        ));
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization")); // ✅ added
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
