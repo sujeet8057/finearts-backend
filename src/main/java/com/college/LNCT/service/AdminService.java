@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @Slf4j
@@ -24,6 +25,12 @@ public class AdminService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Value("${admin.email}")
+    private String defaultAdminEmail;
+
+    @Value("${admin.password}")
+    private String defaultAdminPassword;
 
     // Admin login
     public AdminLoginResponse login(AdminLoginRequest request) {
@@ -59,6 +66,10 @@ public class AdminService {
 
     // Admin signup
     public AdminLoginResponse signup(AdminSignupRequest request) {
+        if (adminRepository.count() > 0) {
+            throw new RuntimeException("Registration is not allowed");
+        }
+
         if (adminRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Admin with this email already exists");
         }
@@ -98,5 +109,19 @@ public class AdminService {
 
         adminRepository.save(admin);
         log.info("Admin created: {}", email);
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void initDefaultAdmin() {
+        if (adminRepository.count() == 0) {
+            Admin admin = Admin.builder()
+                    .email(defaultAdminEmail)
+                    .password(passwordEncoder.encode(defaultAdminPassword))
+                    .name("Admin")
+                    .isActive(true)
+                    .build();
+            adminRepository.save(admin);
+            log.info("Default admin created: {}", defaultAdminEmail);
+        }
     }
 }

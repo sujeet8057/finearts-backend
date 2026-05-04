@@ -2,7 +2,7 @@ package com.college.LNCT.config;
 
 import com.college.LNCT.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+//import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod; // ✅ added
@@ -66,7 +66,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ FIX (preflight)
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/api/admin/login").permitAll()
-                .requestMatchers("/api/admin/signup").permitAll()
+                .requestMatchers("/api/admin/signup").denyAll()
                 .requestMatchers("/api/products/**").permitAll()
                 .requestMatchers("/api/contact").permitAll()
                 .requestMatchers("/api/subscribe").permitAll()
